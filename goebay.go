@@ -10,7 +10,8 @@ import (
 )
 
 const (
-	tokenURL = "https://api.sandbox.ebay.com/identity/v1/oauth2/token"
+	tokenURL = "https://api.ebay.com/identity/v1/oauth2/token"
+	sandboxTokenURL = "https://api.sandbox.ebay.com/identity/v1/oauth2/token"
 )
 
 type OAuthResponse struct {
@@ -19,20 +20,32 @@ type OAuthResponse struct {
     ExpiresIn   int    `json:"expires_in"`
 }
 
+type OAuthParams struct {
+	clientID string
+	clientSecret string
+	IsSandbox bool
+}
+
 func encodeCredentials(clientID, clientSecret string) string {
     auth := clientID + ":" + clientSecret
     return base64.StdEncoding.EncodeToString([]byte(auth))
 }
 
-func GetOAuthToken(clientID string, clientSecret string) (string, error) {
+func GetOAuthToken(p OAuthParams) (string, error) {
 	data := []byte("grant_type=client_credentials&scope=https://api.ebay.com/oauth/api_scope")
-	req, err := http.NewRequest("POST", tokenURL, bytes.NewBuffer(data))
+	var reqURL string
+	if p.IsSandbox {
+		reqURL = sandboxTokenURL
+	} else {
+		reqURL = tokenURL
+	}
+	req, err := http.NewRequest("POST", reqURL, bytes.NewBuffer(data))
 	if err != nil {
 		return "", err
 	}
 
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	req.Header.Set("Authorization", "Basic "+encodeCredentials(clientID, clientSecret))
+	req.Header.Set("Authorization", "Basic "+encodeCredentials(p.clientID, p.clientSecret))
 
 	client := &http.Client{}
 	resp, err := client.Do(req)

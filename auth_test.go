@@ -22,7 +22,7 @@ func TestAuth(t *testing.T) {
 	clientID := os.Getenv("client_id")
 	clientSecret := os.Getenv("client_secret")
 
-	resp, err := GetOAuthToken(clientID, clientSecret)
+	resp, err := GetOAuthToken(OAuthParams{clientID: clientID, clientSecret: clientSecret, IsSandbox: true})
 
 	if err != nil {
 		t.Error(err)
